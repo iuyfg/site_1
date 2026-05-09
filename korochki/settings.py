@@ -2,7 +2,7 @@
 Django settings for korochki project.
 """
 import os
-import dj_database_url # Важно для парсинга DATABASE_URL
+from decouple import config
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -71,27 +71,25 @@ TEMPLATES = [
 WSGI_APPLICATION = 'korochki.wsgi.application'
 
 
-# === Database Settings ===
-# Используем DATABASE_URL для Vercel (Neon) и SQLite для локальной разработки
-DATABASE_URL = os.environ.get('DATABASE_URL')
-
-if DATABASE_URL:
-    # На Vercel: подключаемся к Neon PostgreSQL через строку подключения
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
+# Database
+# Используем переменные окружения для безопасности
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DB_NAME', default='neondb'),
+        'USER': config('DB_USER', default='neondb_owner'),
+        'PASSWORD': config('DB_PASSWORD', default=''),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='5432'),
+        'OPTIONS': {
+            # Временно отключаем требование SSL для локального теста,
+            # если вдруг решите использовать локальную базу.
+            # Для Neon всегда должно быть 'require'.
+            'sslmode': config('DB_SSLMODE', default='require'),
+        },
+        'CONN_MAX_AGE': 0,
     }
-else:
-    # Локально: используем простой SQLite файл
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+}
 
 
 # Password validation
