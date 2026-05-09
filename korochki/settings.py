@@ -10,10 +10,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-b^%(#*i073i&0g#8%%ctzp5=^rr-wh_514ov_7@^^jcfi$a3ej'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -30,15 +30,18 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'cloudinary_storage',  # <-- Добавляем ПЕРЕД django.contrib.staticfiles
+
+    # Cloudinary Storage MUST be before staticfiles
+    'cloudinary_storage',
     'django.contrib.staticfiles',
+
     'cloudinary',
     'portal',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # ✅ ВАЖНО: Добавьте эту строку второй!
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Whitenoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -69,18 +72,19 @@ WSGI_APPLICATION = 'korochki.wsgi.application'
 
 
 # Database
+# Используем переменные окружения для безопасности
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT', default='5432'),
+        'NAME': os.environ.get('DB_NAME', 'neondb'),
+        'USER': os.environ.get('DB_USER', 'neondb_owner'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
         'OPTIONS': {
             'sslmode': 'require',
         },
-        'CONN_MAX_AGE': 0,
+        'CONN_MAX_AGE': 0, # Важно для serverless/Vercel
     }
 }
 
@@ -99,27 +103,41 @@ LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
+
+
 # === Static files (CSS, JavaScript, Images) ===
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+
 # === Media files (Cloudinary) ===
-# Настройки подключения
+# Получаем ключи из переменных окружения Vercel
+CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME')
+CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY')
+CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET')
+
+# Проверка на наличие ключей (для отладки в логах Vercel)
+if not all([CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET]):
+    print("⚠️ WARNING: Cloudinary credentials are MISSING! Check Vercel Environment Variables.")
+else:
+    print("✅ Cloudinary credentials found.")
+
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': config('CLOUDINARY_API_KEY'),
-    'API_SECRET': config('CLOUDINARY_API_SECRET'),
+    'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+    'API_KEY': CLOUDINARY_API_KEY,
+    'API_SECRET': CLOUDINARY_API_SECRET,
 }
 
-# Говорим Django использовать Cloudinary для всех загружаемых файлов
+# Говорим Django использовать Cloudinary для всех загружаемых файлов (картинок)
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-# URL для доступа к медиа-файлам
 MEDIA_URL = '/media/'
 
-# ⚠️ ВАЖНО: Закомментируйте или удалите MEDIA_ROOT, так как файлы теперь в облаке!
+# ⚠️ ВАЖНО: MEDIA_ROOT ЗАКОММЕНТИРОВАН или УДАЛЕН.
+# Файлы больше не сохраняются на диск сервера, а летят сразу в облако.
 # MEDIA_ROOT = BASE_DIR / 'media'
+
 
 # Auth settings
 LOGIN_URL = '/login/'
