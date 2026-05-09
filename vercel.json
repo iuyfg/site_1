@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "korochki/wsgi.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "korochki/wsgi.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "korochki/wsgi.py"
+    }
+  ]
+}
