@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "buildCommand": "python manage.py migrate && python create_admin.py",
   "builds": [
     {
       "src": "korochki/wsgi.py",
