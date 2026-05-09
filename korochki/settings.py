@@ -99,45 +99,29 @@ LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
-
-
 # === Static files (CSS, JavaScript, Images) ===
 STATIC_URL = '/static/'
-
-# ✅ ВАЖНО: Куда collectstatic сложит файлы (папка создастся сама)
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-# ✅ ВАЖНО: Хранение через Whitenoise
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# ❌ УДАЛИТЕ или ЗАКОММЕНТИРУЙТЕ STATICFILES_DIRS, если папки static в корне нет.
-# Django сам найдет файлы в portal/static/
-# STATICFILES_DIRS = [
-#     BASE_DIR / "static",
-# ]
-
-# Media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
-# Auth settings
-LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/' # Лучше вести на главную или дашборд
-LOGOUT_REDIRECT_URL = '/'
-
-
-
-# === Cloudinary Settings ===
+# === Media files (Cloudinary) ===
+# Настройки подключения
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': config('CLOUDINARY_API_KEY'),
     'API_SECRET': config('CLOUDINARY_API_SECRET'),
 }
 
-# Говорим Django использовать Cloudinary для загрузки файлов (MEDIA)
+# Говорим Django использовать Cloudinary для всех загружаемых файлов
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-# URL для доступа к файлам
+# URL для доступа к медиа-файлам
 MEDIA_URL = '/media/'
-# MEDIA_ROOT больше не нужен для Cloudinary, можно закомментировать или удалить
+
+# ⚠️ ВАЖНО: Закомментируйте или удалите MEDIA_ROOT, так как файлы теперь в облаке!
 # MEDIA_ROOT = BASE_DIR / 'media'
+
+# Auth settings
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
