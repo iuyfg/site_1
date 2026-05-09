@@ -30,7 +30,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',  # <-- Добавляем ПЕРЕД django.contrib.staticfiles
     'django.contrib.staticfiles',
+    'cloudinary',
     'portal',
 ]
 
@@ -122,3 +124,20 @@ MEDIA_ROOT = BASE_DIR / 'media'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/' # Лучше вести на главную или дашборд
 LOGOUT_REDIRECT_URL = '/'
+
+
+
+# === Cloudinary Settings ===
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': config('CLOUDINARY_API_KEY'),
+    'API_SECRET': config('CLOUDINARY_API_SECRET'),
+}
+
+# Говорим Django использовать Cloudinary для загрузки файлов (MEDIA)
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# URL для доступа к файлам
+MEDIA_URL = '/media/'
+# MEDIA_ROOT больше не нужен для Cloudinary, можно закомментировать или удалить
+# MEDIA_ROOT = BASE_DIR / 'media'
