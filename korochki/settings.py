@@ -2,7 +2,7 @@
 Django settings for korochki project.
 """
 import os
-from decouple import config
+import dj_database_url # Важно для парсинга DATABASE_URL
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -71,22 +71,27 @@ TEMPLATES = [
 WSGI_APPLICATION = 'korochki.wsgi.application'
 
 
-# Database
-# Используем переменные окружения для безопасности
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'neondb'),
-        'USER': os.environ.get('DB_USER', 'neondb_owner'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-        'OPTIONS': {
-            'sslmode': 'require',
-        },
-        'CONN_MAX_AGE': 0, # Важно для serverless/Vercel
+# === Database Settings ===
+# Используем DATABASE_URL для Vercel (Neon) и SQLite для локальной разработки
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    # На Vercel: подключаемся к Neon PostgreSQL через строку подключения
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    # Локально: используем простой SQLite файл
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
